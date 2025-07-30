@@ -184,17 +184,15 @@ OPENAI_API_KEY=your_openai_api_key_here
 VITE_API_URL=http://localhost:8000
 ```
 
-## 🤝 Contributing
+## 👨‍💻 Author
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+**Parva Shah** - Full Stack Developer & AI Enthusiast
 
-## 📝 License
+[![GitHub](https://img.shields.io/badge/GitHub-parvashah305-black?style=flat-square&logo=github)](https://github.com/parvashah305)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-parvashah305-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/parvashah305/)
+[![Portfolio](https://img.shields.io/badge/Portfolio-parvashah.vercel.app-green?style=flat-square&logo=vercel)](https://parvashah.vercel.app)
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+*Passionate about building innovative AI-powered applications that solve real-world problems. Specializing in full-stack development with modern technologies and machine learning integration.*
 
 ## 🙏 Acknowledgments
 
@@ -203,3 +201,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **React** and **FastAPI** communities for excellent frameworks
 - **TailwindCSS** for beautiful, responsive styling
 
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

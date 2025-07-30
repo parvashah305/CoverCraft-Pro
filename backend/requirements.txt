@@ -1,4 +1,9 @@
 fastapi
 uvicorn
-python-docx
 pdfplumber
+python-docx
+python-dotenv
+openai
+spacy
+pandas
+tqdm
