@@ -36,10 +36,22 @@ def compare_skills(resume_text, jd_text):
 
 def explain_score(score):
     if score >= 80:
-        return "Excellent match. You cover most of the required skills."
+        return (
+            "Excellent match! Your resume aligns very well with the required skills. "
+            "You’ve demonstrated strong relevance and are likely a top candidate."
+        )
     elif score >= 60:
-        return "Good match. A few key skills could be added."
+        return (
+            "Good match. You cover many of the key skills, but there's room to add a few more. "
+            "Enhancing your profile slightly could make you stand out even more."
+        )
     elif score >= 40:
-        return "Moderate match. Consider improving skill alignment."
+        return (
+            "Moderate match. You have some relevant experience, but several important skills are missing. "
+            "Consider updating your resume to better align with the job description."
+        )
     else:
-        return "Low match. Your resume lacks many required skills."
+        return (
+            "Low match. Your current resume lacks many of the core required skills. "
+            "Take time to develop and highlight relevant abilities to improve your chances."
+        )
