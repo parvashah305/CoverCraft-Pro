@@ -5,6 +5,7 @@ from utils.file_parser import extract_text_from_pdf, extract_text_from_docx
 from utils.summarizer import summarize_text
 from utils.skill_extractor import extract_skills
 from utils.skill_extractor import compare_skills
+from utils.cover_letter import generate_cover_letter
 
 app = FastAPI()
 
@@ -111,3 +112,14 @@ async def match_skills_api(data: dict):
         return {"error": "Both resume_text and jd_text are required."}
     
     return compare_skills(resume, jd)
+
+@app.post("/generate-cover-letter")
+async def cover_letter(data: dict):
+    resume_summary = data.get("resume_summary")
+    jd_summary = data.get("jd_summary")
+
+    if not resume_summary or not jd_summary:
+        return {"error": "Both resume_summary and jd_summary are required."}
+
+    letter = generate_cover_letter(resume_summary, jd_summary)
+    return {"cover_letter": letter}
