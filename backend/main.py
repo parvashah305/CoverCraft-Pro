@@ -6,6 +6,7 @@ from utils.summarizer import summarize_text
 from utils.skill_extractor import extract_skills
 from utils.skill_extractor import compare_skills
 from utils.cover_letter import generate_cover_letter
+from utils.cold_mail_generator import generate_cold_email
 
 
 app = FastAPI()
@@ -125,3 +126,9 @@ async def cover_letter(data: dict):
     letter = generate_cover_letter(resume_summary, jd_summary)
     return {"cover_letter": letter}
 
+
+@app.post("/generate-cold-email")
+def generate_email(data: dict):
+    resume_summary = data.get("resume_summary", "")
+    jd_summary = data.get("jd_summary", "")
+    return {"cold_email": generate_cold_email(resume_summary, jd_summary)}

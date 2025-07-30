@@ -66,6 +66,15 @@ export const apiService = {
     });
     return response.data;
   },
+
+  // Generate cold email
+  generateColdEmail: async (resumeSummary, jdSummary) => {
+    const response = await api.post('/generate-cold-email', {
+      resume_summary: resumeSummary,
+      jd_summary: jdSummary,
+    });
+    return response.data;
+  },
 };
 
 export default api;

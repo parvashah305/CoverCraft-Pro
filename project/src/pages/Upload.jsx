@@ -48,6 +48,12 @@ const Upload = () => {
         summariesResponse.jd_summary
       );
 
+      // Step 5: Generate cold email
+      const coldEmailResponse = await apiService.generateColdEmail(
+        summariesResponse.resume_summary,
+        summariesResponse.jd_summary
+      );
+
       // Navigate to results with all the data
       navigate('/results', {
         state: {
@@ -57,6 +63,7 @@ const Upload = () => {
           jdSummary: summariesResponse.jd_summary,
           skillsMatch: skillsResponse,
           coverLetter: coverLetterResponse.cover_letter,
+          coldEmail: coldEmailResponse.cold_email,
         }
       });
 

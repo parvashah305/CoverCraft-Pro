@@ -6,12 +6,17 @@ import {
   ArrowDownTrayIcon,
   ArrowLeftIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon 
+  ExclamationTriangleIcon,
+  PencilIcon,
+  EyeIcon 
 } from '@heroicons/react/24/outline';
 
 const Results = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [copiedCoverLetter, setCopiedCoverLetter] = useState(false);
+  const [copiedColdEmail, setCopiedColdEmail] = useState(false);
+  const [isEditingCoverLetter, setIsEditingCoverLetter] = useState(false);
+  const [isEditingColdEmail, setIsEditingColdEmail] = useState(false);
   const location = useLocation();
   
   // Get data from navigation state (passed from Upload component)
@@ -21,8 +26,13 @@ const Results = () => {
     resumeSummary = '',
     jdSummary = '',
     skillsMatch = {},
-    coverLetter = ''
+    coverLetter: initialCoverLetter = '',
+    coldEmail: initialColdEmail = ''
   } = location.state || {};
+
+  // Editable state for cover letter and cold email
+  const [editableCoverLetter, setEditableCoverLetter] = useState(initialCoverLetter);
+  const [editableColdEmail, setEditableColdEmail] = useState(initialColdEmail);
 
   // If no data is available, redirect to upload
   if (!location.state) {
@@ -44,21 +54,26 @@ const Results = () => {
   const missingSkills = skillsMatch.missing_keywords || [];
   const additionalSkills = skillsMatch.additional_skills || [];
 
-  const copyToClipboard = async () => {
+  const copyToClipboard = async (text, type) => {
     try {
-      await navigator.clipboard.writeText(coverLetter);
-      setCopiedCoverLetter(true);
-      setTimeout(() => setCopiedCoverLetter(false), 2000);
+      await navigator.clipboard.writeText(text);
+      if (type === 'cover-letter') {
+        setCopiedCoverLetter(true);
+        setTimeout(() => setCopiedCoverLetter(false), 2000);
+      } else if (type === 'cold-email') {
+        setCopiedColdEmail(true);
+        setTimeout(() => setCopiedColdEmail(false), 2000);
+      }
     } catch (err) {
       console.error('Failed to copy:', err);
     }
   };
 
-  const downloadCoverLetter = () => {
+  const downloadDocument = (content, filename) => {
     const element = document.createElement('a');
-    const file = new Blob([coverLetter], { type: 'text/plain' });
+    const file = new Blob([content], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = 'cover-letter.txt';
+    element.download = filename;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -67,7 +82,8 @@ const Results = () => {
   const tabs = [
     { id: 'overview', name: 'Overview' },
     { id: 'skills', name: 'Skills Analysis' },
-    { id: 'cover-letter', name: 'Cover Letter' }
+    { id: 'cover-letter', name: 'Cover Letter' },
+    { id: 'cold-email', name: 'Cold Email' }
   ];
 
   return (
@@ -107,7 +123,7 @@ const Results = () => {
             {/* Match Score */}
             <div className="card text-center">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Overall Match Score</h2>
-              <ProgressCircle percentage={matchScore} size="lg" />
+              <ProgressCircle percentage={matchScore} size="lg" showLabel={true} animated={true} />
               <p className="mt-4 text-gray-600">
                 {skillsMatch.explanation || 'Your resume matches the job requirements.'}
               </p>
@@ -218,14 +234,21 @@ const Results = () => {
               <h2 className="text-xl font-semibold text-gray-900">AI-Generated Cover Letter</h2>
               <div className="flex space-x-2">
                 <button
-                  onClick={copyToClipboard}
+                  onClick={() => setIsEditingCoverLetter(!isEditingCoverLetter)}
+                  className={`btn-secondary flex items-center space-x-2 ${isEditingCoverLetter ? 'bg-blue-100 text-blue-700' : ''}`}
+                >
+                  {isEditingCoverLetter ? <EyeIcon className="h-4 w-4" /> : <PencilIcon className="h-4 w-4" />}
+                  <span>{isEditingCoverLetter ? 'Preview' : 'Edit'}</span>
+                </button>
+                <button
+                  onClick={() => copyToClipboard(editableCoverLetter, 'cover-letter')}
                   className={`btn-secondary flex items-center space-x-2 ${copiedCoverLetter ? 'bg-green-100 text-green-700' : ''}`}
                 >
                   <DocumentDuplicateIcon className="h-4 w-4" />
                   <span>{copiedCoverLetter ? 'Copied!' : 'Copy'}</span>
                 </button>
                 <button
-                  onClick={downloadCoverLetter}
+                  onClick={() => downloadDocument(editableCoverLetter, 'cover-letter.txt')}
                   className="btn-primary flex items-center space-x-2"
                 >
                   <ArrowDownTrayIcon className="h-4 w-4" />
@@ -234,15 +257,83 @@ const Results = () => {
               </div>
             </div>
             
-            {coverLetter ? (
-              <div className="bg-gray-50 p-6 rounded-lg border">
-                <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">
-                  {coverLetter}
-                </pre>
+            {editableCoverLetter ? (
+              <div>
+                {isEditingCoverLetter ? (
+                  <textarea
+                    value={editableCoverLetter}
+                    onChange={(e) => setEditableCoverLetter(e.target.value)}
+                    rows={20}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-sm resize-none"
+                    placeholder="Edit your cover letter here..."
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-6 rounded-lg border">
+                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">
+                      {editableCoverLetter}
+                    </pre>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <p>No cover letter generated. Please try uploading your documents again.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Cold Email Tab */}
+        {activeTab === 'cold-email' && (
+          <div className="card">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">AI-Generated Cold Email</h2>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setIsEditingColdEmail(!isEditingColdEmail)}
+                  className={`btn-secondary flex items-center space-x-2 ${isEditingColdEmail ? 'bg-blue-100 text-blue-700' : ''}`}
+                >
+                  {isEditingColdEmail ? <EyeIcon className="h-4 w-4" /> : <PencilIcon className="h-4 w-4" />}
+                  <span>{isEditingColdEmail ? 'Preview' : 'Edit'}</span>
+                </button>
+                <button
+                  onClick={() => copyToClipboard(editableColdEmail, 'cold-email')}
+                  className={`btn-secondary flex items-center space-x-2 ${copiedColdEmail ? 'bg-green-100 text-green-700' : ''}`}
+                >
+                  <DocumentDuplicateIcon className="h-4 w-4" />
+                  <span>{copiedColdEmail ? 'Copied!' : 'Copy'}</span>
+                </button>
+                <button
+                  onClick={() => downloadDocument(editableColdEmail, 'cold-email.txt')}
+                  className="btn-primary flex items-center space-x-2"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  <span>Download</span>
+                </button>
+              </div>
+            </div>
+            
+            {editableColdEmail ? (
+              <div>
+                {isEditingColdEmail ? (
+                  <textarea
+                    value={editableColdEmail}
+                    onChange={(e) => setEditableColdEmail(e.target.value)}
+                    rows={15}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-sm resize-none"
+                    placeholder="Edit your cold email here..."
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-6 rounded-lg border">
+                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">
+                      {editableColdEmail}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No cold email generated. Please try uploading your documents again.</p>
               </div>
             )}
           </div>
