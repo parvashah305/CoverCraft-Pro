@@ -1,0 +1,54 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# macOS specific
+.DS_Store
+
+# FastAPI / Uvicorn logs
+*.log
+
+# Uploads and temp files
+uploads/
+temp/
+*.tmp
+
+# VS Code settings (optional)
+.vscode/
+
+# Python egg metadata
+*.egg-info/
+dist/
+build/
+
+# Pip dependency files
+pip-log.txt
+
+# Jupyter/IPython
+.ipynb_checkpoints/
+
+# Test cache
+.pytest_cache/
+coverage/
+
+# Environment variables
+.env
+
+# MyPy
+.mypy_cache/
+
+# Pyre type checker
+.pyre/
+
+# Pyright
+pyrightconfig.json
+
+# Token or model cache (if using HuggingFace or transformers)
+~/.cache/
+.cache/
