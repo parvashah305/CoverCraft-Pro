@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import ProgressCircle from '../components/ProgressCircle';
 import { 
   DocumentDuplicateIcon,
@@ -11,51 +11,47 @@ import {
 
 const Results = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [coverLetter, setCoverLetter] = useState(`Dear Hiring Manager,
+  const [copiedCoverLetter, setCopiedCoverLetter] = useState(false);
+  const location = useLocation();
+  
+  // Get data from navigation state (passed from Upload component)
+  const {
+    resumeText = '',
+    jdText = '',
+    resumeSummary = '',
+    jdSummary = '',
+    skillsMatch = {},
+    coverLetter = ''
+  } = location.state || {};
 
-I am writing to express my strong interest in the Software Engineer position at your company. With my background in full-stack development and experience with React, Node.js, and cloud technologies, I am confident that I would be a valuable addition to your team.
+  // If no data is available, redirect to upload
+  if (!location.state) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="card max-w-md w-full mx-4 text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">No Analysis Data</h2>
+          <p className="text-gray-600 mb-6">Please upload your documents first to see results.</p>
+          <Link to="/upload" className="btn-primary">
+            Go to Upload
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-My experience includes:
-• 3+ years of React development with modern frameworks
-• Strong proficiency in JavaScript, TypeScript, and Python
-• Experience with AWS services and Docker containerization
-• Proven track record of delivering scalable web applications
+  const matchScore = skillsMatch.match_score || 0;
+  const matchedSkills = skillsMatch.matched_keywords || [];
+  const missingSkills = skillsMatch.missing_keywords || [];
+  const additionalSkills = skillsMatch.additional_skills || [];
 
-I am particularly excited about this opportunity because it aligns perfectly with my passion for building innovative solutions and my desire to work with cutting-edge technologies.
-
-Thank you for considering my application. I look forward to discussing how my skills and enthusiasm can contribute to your team's success.
-
-Best regards,
-[Your Name]`);
-
-  const matchScore = 87;
-  const skills = {
-    matched: ['React', 'JavaScript', 'Node.js', 'Python', 'AWS', 'Docker'],
-    missing: ['Kubernetes', 'GraphQL', 'MongoDB', 'Redux'],
-    additional: ['TypeScript', 'Vue.js', 'PostgreSQL']
-  };
-
-  const suggestions = [
-    {
-      original: "Developed web applications using various technologies",
-      improved: "Built 5+ scalable web applications using React, Node.js, and AWS, serving 10,000+ daily active users",
-      type: "enhancement"
-    },
-    {
-      original: "Worked on team projects",
-      improved: "Collaborated with cross-functional teams of 8+ members using Agile methodologies to deliver projects 20% ahead of schedule",
-      type: "enhancement"
-    },
-    {
-      original: "Missing: Experience with container orchestration",
-      improved: "Add: Deployed and managed containerized applications using Docker and Kubernetes in production environments",
-      type: "addition"
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(coverLetter);
+      setCopiedCoverLetter(true);
+      setTimeout(() => setCopiedCoverLetter(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
-  ];
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(coverLetter);
-    alert('Cover letter copied to clipboard!');
   };
 
   const downloadCoverLetter = () => {
@@ -70,9 +66,8 @@ Best regards,
 
   const tabs = [
     { id: 'overview', name: 'Overview' },
-    { id: 'skills', name: 'Skills & Keywords' },
-    { id: 'cover-letter', name: 'Cover Letter' },
-    { id: 'suggestions', name: 'Resume Tips' }
+    { id: 'skills', name: 'Skills Analysis' },
+    { id: 'cover-letter', name: 'Cover Letter' }
   ];
 
   return (
@@ -84,7 +79,7 @@ Best regards,
             Back to Upload
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Analysis Results</h1>
-          <p className="text-gray-600 mt-2">Here's how your resume matches the job description</p>
+          <p className="text-gray-600 mt-2">AI-powered analysis of your resume and job description</p>
         </div>
 
         {/* Tabs */}
@@ -108,59 +103,43 @@ Best regards,
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="card">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Document Summary</h2>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Resume Summary</h3>
-                    <p className="text-gray-600 text-sm">
-                      Experienced software engineer with 3+ years in full-stack development, 
-                      specializing in React, Node.js, and cloud technologies. Strong background 
-                      in building scalable web applications and working in agile environments.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Job Description Summary</h3>
-                    <p className="text-gray-600 text-sm">
-                      Seeking a software engineer to join our growing team. Responsibilities include 
-                      developing modern web applications, working with microservices architecture, 
-                      and collaborating with cross-functional teams.
-                    </p>
-                  </div>
-                </div>
-              </div>
+          <div className="space-y-8">
+            {/* Match Score */}
+            <div className="card text-center">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Overall Match Score</h2>
+              <ProgressCircle percentage={matchScore} size="lg" />
+              <p className="mt-4 text-gray-600">
+                {skillsMatch.explanation || 'Your resume matches the job requirements.'}
+              </p>
+            </div>
 
+            {/* Summaries */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="card">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Key Highlights</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-start space-x-3">
-                    <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5" />
-                    <span className="text-sm text-gray-700">Strong technical skill alignment</span>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5" />
-                    <span className="text-sm text-gray-700">Relevant experience level</span>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <ExclamationTriangleIcon className="h-5 w-5 text-amber-500 mt-0.5" />
-                    <span className="text-sm text-gray-700">Some missing keywords</span>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5" />
-                    <span className="text-sm text-gray-700">Good cultural fit indicators</span>
-                  </div>
-                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Resume Summary</h3>
+                <p className="text-gray-700 leading-relaxed">{resumeSummary}</p>
+              </div>
+              
+              <div className="card">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Description Summary</h3>
+                <p className="text-gray-700 leading-relaxed">{jdSummary}</p>
               </div>
             </div>
 
-            <div className="card text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Match Score</h2>
-              <ProgressCircle percentage={matchScore} />
-              <p className="text-gray-600 mt-4 text-sm">
-                Your resume is a <strong>{matchScore >= 80 ? 'strong' : matchScore >= 60 ? 'good' : 'fair'}</strong> match for this position
-              </p>
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="card text-center">
+                <div className="text-2xl font-bold text-green-600">{matchedSkills.length}</div>
+                <div className="text-sm text-gray-600">Matched Skills</div>
+              </div>
+              <div className="card text-center">
+                <div className="text-2xl font-bold text-red-600">{missingSkills.length}</div>
+                <div className="text-sm text-gray-600">Missing Skills</div>
+              </div>
+              <div className="card text-center">
+                <div className="text-2xl font-bold text-blue-600">{additionalSkills.length}</div>
+                <div className="text-sm text-gray-600">Additional Skills</div>
+              </div>
             </div>
           </div>
         )}
@@ -168,43 +147,64 @@ Best regards,
         {/* Skills Tab */}
         {activeTab === 'skills' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="card">
-                <h3 className="font-semibold text-green-800 mb-4 flex items-center">
-                  <CheckCircleIcon className="h-5 w-5 mr-2" />
-                  Matched Skills
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {skills.matched.map((skill, index) => (
-                    <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                      {skill}
-                    </span>
-                  ))}
+            <div className="card">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Skills Analysis</h2>
+              
+              <div className="space-y-6">
+                {/* Matched Skills */}
+                <div>
+                  <h3 className="flex items-center font-semibold text-green-800 mb-4">
+                    <CheckCircleIcon className="h-5 w-5 mr-2" />
+                    Matched Skills ({matchedSkills.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {matchedSkills.length > 0 ? (
+                      matchedSkills.map((skill, index) => (
+                        <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                          {skill}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">No matched skills found</p>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className="card">
-                <h3 className="font-semibold text-red-800 mb-4 flex items-center">
-                  <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
-                  Missing Skills
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {skills.missing.map((skill, index) => (
-                    <span key={index} className="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full">
-                      {skill}
-                    </span>
-                  ))}
+                {/* Missing Skills */}
+                <div>
+                  <h3 className="flex items-center font-semibold text-red-800 mb-4">
+                    <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                    Missing Skills ({missingSkills.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {missingSkills.length > 0 ? (
+                      missingSkills.map((skill, index) => (
+                        <span key={index} className="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full">
+                          {skill}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">No missing skills identified</p>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className="card">
-                <h3 className="font-semibold text-blue-800 mb-4">Additional Skills</h3>
-                <div className="flex flex-wrap gap-2">
-                  {skills.additional.map((skill, index) => (
-                    <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                      {skill}
-                    </span>
-                  ))}
+                {/* Additional Skills */}
+                <div>
+                  <h3 className="font-semibold text-blue-800 mb-4">
+                    Additional Skills ({additionalSkills.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {additionalSkills.length > 0 ? (
+                      additionalSkills.map((skill, index) => (
+                        <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                          {skill}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">No additional skills found</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -215,14 +215,14 @@ Best regards,
         {activeTab === 'cover-letter' && (
           <div className="card">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Generated Cover Letter</h2>
+              <h2 className="text-xl font-semibold text-gray-900">AI-Generated Cover Letter</h2>
               <div className="flex space-x-2">
                 <button
                   onClick={copyToClipboard}
-                  className="btn-secondary flex items-center space-x-2"
+                  className={`btn-secondary flex items-center space-x-2 ${copiedCoverLetter ? 'bg-green-100 text-green-700' : ''}`}
                 >
                   <DocumentDuplicateIcon className="h-4 w-4" />
-                  <span>Copy</span>
+                  <span>{copiedCoverLetter ? 'Copied!' : 'Copy'}</span>
                 </button>
                 <button
                   onClick={downloadCoverLetter}
@@ -233,45 +233,18 @@ Best regards,
                 </button>
               </div>
             </div>
-            <textarea
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              rows={20}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
-            />
-          </div>
-        )}
-
-        {/* Suggestions Tab */}
-        {activeTab === 'suggestions' && (
-          <div className="space-y-6">
-            <div className="card">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Resume Improvement Suggestions</h2>
-              <div className="space-y-6">
-                {suggestions.map((suggestion, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-medium text-red-800 mb-2">
-                          {suggestion.type === 'addition' ? 'Missing' : 'Original'}
-                        </h4>
-                        <p className="text-sm text-gray-700 bg-red-50 p-3 rounded border-l-4 border-red-400">
-                          {suggestion.original}
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-green-800 mb-2">
-                          {suggestion.type === 'addition' ? 'Suggested Addition' : 'Improved Version'}
-                        </h4>
-                        <p className="text-sm text-gray-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
-                          {suggestion.improved}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            
+            {coverLetter ? (
+              <div className="bg-gray-50 p-6 rounded-lg border">
+                <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">
+                  {coverLetter}
+                </pre>
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No cover letter generated. Please try uploading your documents again.</p>
+              </div>
+            )}
           </div>
         )}
 

@@ -3,29 +3,72 @@ import { useNavigate } from 'react-router-dom';
 import FileUpload from '../components/FileUpload';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import { apiService } from '../services/api';
 
 const Upload = () => {
   const [resumeFile, setResumeFile] = useState(null);
   const [jobDescFile, setJobDescFile] = useState(null);
+  const [jobDescText, setJobDescText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleAnalyze = async () => {
-    if (!resumeFile || !jobDescFile) {
-      alert('Please upload both your resume and job description');
+    if (!resumeFile || (!jobDescFile && !jobDescText.trim())) {
+      setError('Please upload your resume and provide a job description (either file or text)');
       return;
     }
 
     setIsAnalyzing(true);
+    setError('');
     
-    // Simulate analysis process
-    setTimeout(() => {
+    try {
+      // Step 1: Upload files and extract text
+      const uploadResponse = await apiService.uploadFiles(
+        resumeFile,
+        jobDescFile,
+        jobDescText.trim() || null
+      );
+
+      if (uploadResponse.error) {
+        throw new Error(uploadResponse.error);
+      }
+
+      const { resume_text, jd_text } = uploadResponse;
+
+      // Step 2: Generate summaries
+      const summariesResponse = await apiService.generateSummaries(resume_text, jd_text);
+      
+      // Step 3: Extract and match skills
+      const skillsResponse = await apiService.matchSkills(resume_text, jd_text);
+
+      // Step 4: Generate cover letter
+      const coverLetterResponse = await apiService.generateCoverLetter(
+        summariesResponse.resume_summary,
+        summariesResponse.jd_summary
+      );
+
+      // Navigate to results with all the data
+      navigate('/results', {
+        state: {
+          resumeText: resume_text,
+          jdText: jd_text,
+          resumeSummary: summariesResponse.resume_summary,
+          jdSummary: summariesResponse.jd_summary,
+          skillsMatch: skillsResponse,
+          coverLetter: coverLetterResponse.cover_letter,
+        }
+      });
+
+    } catch (err) {
+      console.error('Analysis error:', err);
+      setError(err.message || 'An error occurred during analysis. Please try again.');
+    } finally {
       setIsAnalyzing(false);
-      navigate('/results');
-    }, 3000);
+    }
   };
 
-  const canAnalyze = resumeFile && jobDescFile;
+  const canAnalyze = resumeFile && (jobDescFile || jobDescText.trim());
 
   if (isAnalyzing) {
     return (
@@ -33,9 +76,9 @@ const Upload = () => {
         <div className="card max-w-md w-full mx-4 text-center">
           <LoadingSpinner size="lg" text="Analyzing your documents..." />
           <div className="mt-6 space-y-2">
-            <p className="text-sm text-gray-600">This may take a few moments</p>
+            <p className="text-sm text-gray-600">Processing with AI...</p>
             <div className="bg-gray-200 rounded-full h-2">
-              <div className="bg-primary-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+              <div className="bg-primary-500 h-2 rounded-full animate-pulse" style={{width: '75%'}}></div>
             </div>
           </div>
         </div>
@@ -51,9 +94,15 @@ const Upload = () => {
             Upload Your Documents
           </h1>
           <p className="text-lg text-gray-600">
-            Upload your resume and the job description you're applying for to get started.
+            Upload your resume and the job description you're applying for to get AI-powered insights.
           </p>
         </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div className="card">
@@ -62,15 +111,18 @@ const Upload = () => {
               accept=".pdf,.doc,.docx"
               onFileSelect={setResumeFile}
               placeholder="Upload your resume in PDF or DOCX format"
+              allowText={false}
             />
           </div>
 
           <div className="card">
             <FileUpload
-              title="Upload Job Description"
+              title="Job Description"
               accept=".pdf,.doc,.docx,.txt"
               onFileSelect={setJobDescFile}
-              placeholder="Paste the job description here or upload a file..."
+              onTextChange={setJobDescText}
+              placeholder="Paste the job description here..."
+              allowText={true}
             />
           </div>
         </div>
@@ -85,26 +137,26 @@ const Upload = () => {
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            <span>Analyze Documents</span>
+            <span>Analyze with AI</span>
             <ArrowRightIcon className="h-5 w-5" />
           </button>
           
           {!canAnalyze && (
             <p className="text-sm text-gray-500 mt-2">
-              Please upload both documents to continue
+              Please upload your resume and provide a job description to continue
             </p>
           )}
         </div>
 
         <div className="mt-12 bg-blue-50 border border-blue-200 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-blue-900 mb-2">
-            💡 Tips for Better Results
+            🚀 What You'll Get
           </h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Ensure your resume is up-to-date and properly formatted</li>
-            <li>• Include the complete job description for accurate analysis</li>
-            <li>• PDF format works best for maintaining document structure</li>
-            <li>• Remove any sensitive information before uploading</li>
+            <li>• AI-powered skill matching and gap analysis</li>
+            <li>• Professional resume and job description summaries</li>
+            <li>• Personalized cover letter generation</li>
+            <li>• Detailed compatibility scoring</li>
           </ul>
         </div>
       </div>

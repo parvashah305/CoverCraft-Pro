@@ -7,6 +7,7 @@ from utils.skill_extractor import extract_skills
 from utils.skill_extractor import compare_skills
 from utils.cover_letter import generate_cover_letter
 
+
 app = FastAPI()
 
 app.add_middleware(
@@ -123,3 +124,4 @@ async def cover_letter(data: dict):
 
     letter = generate_cover_letter(resume_summary, jd_summary)
     return {"cover_letter": letter}
+
