@@ -83,7 +83,7 @@ const Upload = () => {
         <div className="card max-w-md w-full mx-4 text-center">
           <LoadingSpinner size="lg" text="Analyzing your documents..." />
           <div className="mt-6 space-y-2">
-            <p className="text-sm text-gray-600">Processing with AI...</p>
+            <p className="text-sm text-gray-600">Processing ...</p>
             <div className="bg-gray-200 rounded-full h-2">
               <div className="bg-primary-500 h-2 rounded-full animate-pulse" style={{width: '75%'}}></div>
             </div>
@@ -144,7 +144,7 @@ const Upload = () => {
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            <span>Analyze with AI</span>
+            <span>Analyze</span>
             <ArrowRightIcon className="h-5 w-5" />
           </button>
           
