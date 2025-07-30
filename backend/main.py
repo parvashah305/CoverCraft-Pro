@@ -2,8 +2,9 @@ import os
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from utils.file_parser import extract_text_from_pdf, extract_text_from_docx
-from extract.skills import compare_resume_jd
 from utils.summarizer import summarize_text
+from utils.skill_extractor import extract_skills
+from utils.skill_extractor import compare_skills
 
 app = FastAPI()
 
@@ -68,14 +69,13 @@ async def upload_files(
     
 @app.post("/evaluate")
 async def evaluate_match(data: dict):
-    resume = data.get("resume_text")
-    jd = data.get("jd_text")
+    resume_text = data.get("resume_text")
+    jd_text = data.get("jd_text")
 
-    if not resume or not jd:
+    if not resume_text or not jd_text:
         return {"error": "Both resume_text and jd_text are required."}
 
-    result = compare_resume_jd(resume, jd)
-    return result
+    return semantic_match_score(resume_text, jd_text)
 
 @app.post("/summarize")
 async def generate_summaries(data: dict):
@@ -92,3 +92,22 @@ async def generate_summaries(data: dict):
         "resume_summary": resume_summary,
         "jd_summary": jd_summary
     }
+    
+@app.post("/extract-skills")
+async def extract_skills_from_text(data: dict):
+    resume = data.get("resume_text", "")
+    jd = data.get("jd_text", "")
+    return {
+        "resume_skills": extract_skills(resume),
+        "jd_skills": extract_skills(jd)
+    }
+    
+@app.post("/match-skills")
+async def match_skills_api(data: dict):
+    resume = data.get("resume_text", "")
+    jd = data.get("jd_text", "")
+    
+    if not resume or not jd:
+        return {"error": "Both resume_text and jd_text are required."}
+    
+    return compare_skills(resume, jd)

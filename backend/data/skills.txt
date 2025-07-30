@@ -370,6 +370,7 @@ German
 Ghostwriting
 GIMP
 Git
+Github
 Glass / Mirror / Glazing
 Golang
 Google Adsense
